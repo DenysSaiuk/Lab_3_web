@@ -3,8 +3,11 @@ const https = require('https');
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./authController');
+const cookieParser = require('cookie-parser');
 
 const app = express();
+
+app.use(cookieParser());
 
 // Дозвіл CORS
 app.use(cors({

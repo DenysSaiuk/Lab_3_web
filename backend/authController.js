@@ -1,13 +1,16 @@
 const express = require('express');
 const axios = require('axios');
-const router = express.Router();
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
+const router = express.Router();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const clientId = 'acc667173afa64d95bdc';
 const clientSecret = 'f38fc4df744d85b3f8d2d50bee51434d18788dac';
 const redirectUri = 'https://localhost:3000/auth/casdoor/callback';
 const casdoorTokenUrl = 'https://localhost:8443/api/login/oauth/access_token';
+
 
 router.get('/casdoor/callback', async (req, res) => {
   const code = req.query.code;
@@ -38,7 +41,14 @@ router.get('/casdoor/callback', async (req, res) => {
     console.log('Token data:', JSON.stringify(data));
 
     if (data.access_token) {
-      res.redirect(`https://localhost:3001/callback?token=${data.access_token}`);
+      // Зберігаємо токен в cookie
+      res.cookie('token', data.access_token, {
+        httpOnly: false, // Зроби true у проді
+        secure: false,   // Зроби true у HTTPS
+        sameSite: 'lax',
+      });
+
+      res.redirect('https://localhost:3001/callback'); // редірект на фронт
     } else {
       res.status(400).send('Token exchange failed');
     }
@@ -46,6 +56,29 @@ router.get('/casdoor/callback', async (req, res) => {
   } catch (error) {
     console.error('Casdoor error:', error);
     res.status(500).send('Internal server error');
+  }
+});
+
+// 🔐 Повертає профіль користувача з токена
+router.get('/casdoor/profile', (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.decode(token);
+
+    if (!decoded) {
+      return res.status(400).json({ error: 'Invalid token' });
+    }
+
+    const { name, displayName, email, avatar, isAdmin } = decoded;
+    return res.json({ name, displayName, email, avatar, isAdmin });
+
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to decode token' });
   }
 });
 
