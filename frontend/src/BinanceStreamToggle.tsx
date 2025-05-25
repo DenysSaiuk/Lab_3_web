@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import protobuf from "protobufjs";
 import axios from "axios";
-import tradepb from "./trade.js";
+import trade from "./trade.js";
 
 interface TradeMessage {
   stream: string;
@@ -36,7 +36,7 @@ const BinanceStreamToggle: React.FC = () => {
   };
 
   useEffect(() => {
-    const Trade = (tradepb as any).Trade.Trade;
+    const Trade = (trade as any).Trade.Trade;
     tradeTypeRef.current = Trade;
 
     return () => {
