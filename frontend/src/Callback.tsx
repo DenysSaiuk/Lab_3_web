@@ -52,7 +52,7 @@ const CallbackPage = () => {
           <img src={user.avatar} alt="User Avatar" width={100} />
         </div>
       )}
-      {user && <BinanceStreamToggle />}
+      <BinanceStreamToggle />
     </div>
   );
 };

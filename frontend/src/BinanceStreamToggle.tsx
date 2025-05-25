@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import protobuf from "protobufjs";
 import axios from "axios";
+import tradepb from "./trade.js";
 
 interface TradeMessage {
   stream: string;
@@ -34,12 +35,9 @@ const BinanceStreamToggle: React.FC = () => {
     );
   };
 
-  // Завантаження protobuf-типу один раз при монтуванні
   useEffect(() => {
-    protobuf.load("/trade.proto").then((root) => {
-      const Trade = root.lookupType("Trade.Trade");
-      tradeTypeRef.current = Trade;
-    });
+    const Trade = (tradepb as any).Trade.Trade;
+    tradeTypeRef.current = Trade;
 
     return () => {
       if (wsRef.current) {
@@ -48,7 +46,6 @@ const BinanceStreamToggle: React.FC = () => {
     };
   }, []);
 
-  // Функція для підключення до WS і обробки повідомлень
   const connectWebSocket = () => {
     if (wsRef.current) {
       wsRef.current.close();
