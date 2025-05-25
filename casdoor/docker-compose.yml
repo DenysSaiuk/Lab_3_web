@@ -1,28 +1,28 @@
 version: "3.8"
 
 services:
-  casdoor:
+  casdoor_auth:
     image: casbin/casdoor-all-in-one
-    container_name: casdoor
+    container_name: casdoor_auth
     ports:
       - "8000:8000"
     networks:
-      - casdoor_net
+      - casdoor_auth_net
 
-  nginx:
+  nginx_auth:
     image: nginx:latest
-    container_name: nginx
+    container_name: nginx_auth
     ports:
       - "80:80"
-      - "8443:8443"
+      - "8445:8445"
     volumes:
       - ./nginx:/etc/nginx/conf.d
       - ./keys:/etc/nginx/certs
     depends_on:
-      - casdoor
+      - casdoor_auth
     networks:
-      - casdoor_net
+      - casdoor_auth_net
 
 networks:
-  casdoor_net:
+  casdoor_auth_net:
     driver: bridge

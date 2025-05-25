@@ -6,10 +6,10 @@ const cookieParser = require('cookie-parser');
 const router = express.Router();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const clientId = 'acc667173afa64d95bdc';
-const clientSecret = 'f38fc4df744d85b3f8d2d50bee51434d18788dac';
+const clientId = '4f95f03badb51594a6f3';
+const clientSecret = 'b6370fcb579fa4276d924c5104da2c7bbf8b7898';
 const redirectUri = 'https://localhost:3000/auth/casdoor/callback';
-const casdoorTokenUrl = 'https://localhost:8443/api/login/oauth/access_token';
+const casdoorTokenUrl = 'https://localhost:8445/api/login/oauth/access_token';
 
 
 router.get('/casdoor/callback', async (req, res) => {

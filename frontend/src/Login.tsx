@@ -1,8 +1,8 @@
 import axios from "axios";
 
-const CASDOOR_CLIENT_ID = "acc667173afa64d95bdc";
+const CASDOOR_CLIENT_ID = "4f95f03badb51594a6f3";
 const CASDOOR_REDIRECT_URI = "https://localhost:3000/auth/casdoor/callback";
-const CASDOOR_AUTH_URL = "https://localhost:8443/login/oauth/authorize";
+const CASDOOR_AUTH_URL = "https://localhost:8445/login/oauth/authorize";
 
 const LoginPage = () => {
   const handleLogin = () => {
@@ -42,4 +42,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

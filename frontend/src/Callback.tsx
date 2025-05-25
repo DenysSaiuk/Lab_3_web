@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import BinanceStreamToggle from "./BinanceStreamToggle";
 
 interface ServerUser {
   name: string;
@@ -51,6 +52,7 @@ const CallbackPage = () => {
           <img src={user.avatar} alt="User Avatar" width={100} />
         </div>
       )}
+      {user && <BinanceStreamToggle />}
     </div>
   );
 };
