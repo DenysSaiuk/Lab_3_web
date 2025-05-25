@@ -1,40 +1,46 @@
+const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
 const EventEmitter = require('events');
-const protobuf = require('protobufjs');
+const { execSync } = require('child_process');
 
 class CryptoStreamService extends EventEmitter {
   constructor() {
     super();
     this.connection = null;
-    this.protobufRoot = null;
     this.tradeMessageType = null;
+
+    this.ensureProtobufCache();
+    const tradePb = require('./generated/trade_pb');
+    this.tradeMessageType = tradePb.Trade.Trade;
   }
 
-  async initializeProtobuf() {
-    try {
-      const protoPath = path.join(__dirname, 'trade.proto');
-      this.protobufRoot = await protobuf.load(protoPath);
+ensureProtobufCache() {
+  const protoPath = path.join(__dirname, 'trade.proto');
+  const generatedDir = path.join(__dirname, 'generated');
+  const outputPath = path.join(generatedDir, 'trade_pb.js');
 
-      const tradeNamespace = this.protobufRoot.lookup('Trade');
-
-      this.tradeMessageType = tradeNamespace.lookupType('Trade.Trade');
-
-    } catch (error) {
-    }
+  if (!fs.existsSync(generatedDir)) {
+    fs.mkdirSync(generatedDir, { recursive: true });
   }
+
+  try {
+    execSync(`npx pbjs -t static-module -w commonjs -o "${outputPath}" "${protoPath}"`, {
+      stdio: 'inherit',
+    });
+  } catch (err) {
+    process.exit(1);
+  }
+}
 
   async openStream() {
-
     if (!this.tradeMessageType) {
-      await this.initializeProtobuf();
-    }
-
-    if (!this.tradeMessageType) {
+      console.error('[WebSocket] tradeMessageType not loaded');
       return;
     }
 
     if (this.connection && this.connection.readyState === WebSocket.OPEN) {
+      console.log('[WebSocket] Already connected');
       return;
     }
 
@@ -42,17 +48,16 @@ class CryptoStreamService extends EventEmitter {
       const assets = ['solusdt', 'adausdt'];
       const endpoint = `wss://stream.binance.com:9443/stream?streams=${assets.map(a => `${a}@trade`).join('/')}`;
 
-
       this.connection = new WebSocket(endpoint);
 
       this.connection.on('open', () => {
+        console.log('[WebSocket] Binance stream connected');
         resolve();
       });
 
       this.connection.on('message', (rawData) => {
         try {
           const jsonData = JSON.parse(rawData);
-
           const rawTrade = jsonData.data;
 
           if (!rawTrade || !rawTrade.s || !rawTrade.p || !rawTrade.q || !rawTrade.T) {
@@ -67,22 +72,21 @@ class CryptoStreamService extends EventEmitter {
             tradeTime: rawTrade.T,
           };
 
-
-          const validationError = this.tradeMessageType.verify(formatted);
-          if (validationError) {
-            throw new Error(validationError);
-          }
+          const errMsg = this.tradeMessageType.verify(formatted);
+          if (errMsg) throw new Error(errMsg);
 
           this.emit('trade', formatted);
-
         } catch (err) {
+          console.error('[WebSocket] Trade message error:', err.message);
         }
       });
 
       this.connection.on('close', (code, reason) => {
+        console.log(`[WebSocket] Connection closed: ${code} ${reason}`);
       });
 
       this.connection.on('error', (err) => {
+        console.error('[WebSocket] Connection error:', err.message);
         reject(err);
       });
     });
@@ -92,7 +96,7 @@ class CryptoStreamService extends EventEmitter {
     if (this.connection) {
       this.connection.close();
       this.connection = null;
-    } else {
+      console.log('[WebSocket] Connection closed manually');
     }
   }
 
