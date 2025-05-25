@@ -18,7 +18,7 @@ class CryptoStreamService extends EventEmitter {
 ensureProtobufCache() {
   const protoPath = path.join(__dirname, 'trade.proto');
   const generatedDir = path.join(__dirname, 'generated');
-  const outputPath = path.join(generatedDir, 'trade_pb.js');
+  const outputPath = path.join(generatedDir, 'trade.js');
 
   if (!fs.existsSync(generatedDir)) {
     fs.mkdirSync(generatedDir, { recursive: true });
